@@ -68,7 +68,6 @@ interface IProduct {
     image: string; // ссылка на изображение товара
     price: number | null; // цена товара, может быть null
     description: string;  // описание товара 
-    // selected: boolean; // был данный товар добавлен в корзину или нет
   }
 ```
 
@@ -93,9 +92,10 @@ interface IOrderResult {
 ```
 ###  Модели данных
 
-### Класс Component
+#### Класс Component
 предназначен для тутутут
-
+#### Класс Api
+fhfhhfhfhf
 
 
 
