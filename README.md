@@ -44,8 +44,8 @@ yarn build
 
 ## Документация
 
-### Типы данных
-Для описания товара используется интерфейс IProduct:
+### Описание данных
+Для описания всех возможных категорий товара используется тип CategoryType:
 ```
 type CategoryType = 
     'софт-скил'
@@ -56,17 +56,47 @@ type CategoryType =
 ```
 Для описания возможных способов оплаты заказа используется тип TOrderPayment:
 ```
-  type TOrderPayment = 'cash' | 'card';
+  type TOrderPayment  = 'cash' | 'card';
+```
+
+Содержит поля приходящие с сервера.
+```
+interface IProduct {
+    id: string; // уникальный id
+    category: CategoryType; // категория товара
+    title: string; // название  товара
+    image: string; // ссылка на изображение товара
+    price: number | null; // цена товара, может быть null
+    description: string;  // описание товара 
+    // selected: boolean; // был данный товар добавлен в корзину или нет
+  }
 ```
 
 Для описания заказа используется интерфейс IOrder:
 ```
-  interface IOrder {
+ interface IOrder {
     items: string[]; // Массив ID купленных товаров
     total: number; // Сумма заказа
-    payment: string; // Способ оплаты
+    payment: TOrderPayment; // Способ оплаты
     address: string; // Адрес доставки
     email: string; // Электронная почта
     phone: string; // Телефон
   }
 ```
+
+интерфейс содержит идентификатор созданного заказа и количество списанной валюты.
+```
+interface IOrderResult {
+      id: string;
+      total: number;
+  }
+```
+###  Модели данных
+
+### Класс Component
+предназначен для тутутут
+
+
+
+
+### Описание событий
