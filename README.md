@@ -46,7 +46,7 @@ yarn build
 
 ### Данные и типы данных, используемые в приложении
 
-*Интерфейс IProduct, описывает карточку товара в магазине 
++ Интерфейс IProduct, описывает карточку товара в магазине 
 ```typescript
 export interface IProduct {
 	id: string; // уникальный id
@@ -58,7 +58,7 @@ export interface IProduct {
 }
 ```
 
-*Тип TOrderPayment описывает методы оплаты 
++ Тип TOrderPayment описывает методы оплаты 
 ```typescript
 export type TOrderPayment = 'cash' | 'card';
 ```
