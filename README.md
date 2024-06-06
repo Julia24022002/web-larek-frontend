@@ -44,58 +44,79 @@ yarn build
 
 ## Документация
 
-### Описание данных
-Для описания всех возможных категорий товара используется тип CategoryType:
-```
-type CategoryType = 
-    'софт-скил'
-    'другое'
-    'дополнительное'
-    'кнопка'
-    'хард-скил';
-```
-Для описания возможных способов оплаты заказа используется тип TOrderPayment:
-```
-  type TOrderPayment  = 'cash' | 'card';
+### Данные и типы данных, используемые в приложении
+
+*Интерфейс IProduct, описывает карточку товара в магазине 
+```typescript
+export interface IProduct {
+	id: string; // уникальный id
+	category: string; // категория товара
+	title: string; // название  товара
+	image: string; // ссылка на изображение товара
+	price: number | null; // цена товара, может быть null
+	description: string; // описание товара
+}
 ```
 
-Содержит поля приходящие с сервера.
-```
-interface IProduct {
-    id: string; // уникальный id
-    category: CategoryType; // категория товара
-    title: string; // название  товара
-    image: string; // ссылка на изображение товара
-    price: number | null; // цена товара, может быть null
-    description: string;  // описание товара 
-  }
+*Тип TOrderPayment описывает методы оплаты 
+```typescript
+export type TOrderPayment = 'cash' | 'card';
 ```
 
-Для описания заказа используется интерфейс IOrder:
-```
- interface IOrder {
-    items: string[]; // Массив ID купленных товаров
-    total: number; // Сумма заказа
-    payment: TOrderPayment; // Способ оплаты
-    address: string; // Адрес доставки
-    email: string; // Электронная почта
-    phone: string; // Телефон
-  }
+*Интерфейс IOrder используется для описания заказа
+```typescript
+export interface IOrder {
+	items: IProduct[]; // Массив ID купленных товаров
+	total: number; // стоимость заказа
+	payment: TOrderPayment; // Способ оплаты
+	address: string; // Адрес доставки
+	email: string; // Электронная почта
+	phone: string; // Телефон
+}
 ```
 
-интерфейс содержит идентификатор созданного заказа и количество списанной валюты.
+*Интерфейс IBasket содержит список товаров и итоговую стоимость 
+```typescript
+export interface IBasket {
+	items: string[];
+	total: number;
+}
 ```
-interface IOrderResult {
-      id: string;
-      total: number;
-  }
+
+*Тип OrderForm используется для валидации полей ввода
+```typescript
+export type OrderForm = Omit<IOrder, 'total' | 'items'>;
 ```
+
+*Идентификатор созданного заказа и количество списанной валюты IOrderResult
+```typescript
+export interface IOrderResult {
+	id: string;
+	total: number;
+}
+```
+
 ###  Модели данных
+ (Это Классы, которые будут отвечать за хранение данных)
 
-#### Класс Component
-предназначен для тутутут
-#### Класс Api
-fhfhhfhfhf
+Класс WebLarekAPI
+Класс Component
+Класс View
+
+
+Компоненты представления
+Basket
+Form
+Modal
+Page
+Card
+Order
+Contacts
+Success
+AppData
+
+
+
 
 
 
