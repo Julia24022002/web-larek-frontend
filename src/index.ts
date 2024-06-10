@@ -1,4 +1,4 @@
 import './scss/styles.scss';
 
-import { IOrderResult, IProduct, OrderForm } from './types';
+// import { IOrderResult, IProduct, OrderForm } from './types';
 
