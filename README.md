@@ -15,7 +15,7 @@
 - src/pages/index.html — HTML-файл главной страницы
 - src/types/index.ts — файл с типами
 - src/index.ts — точка входа приложения
-- src/styles/styles.scss — корневой файл стилей
+- src/scss/styles.scss — корневой файл стилей
 - src/utils/constants.ts — файл с константами
 - src/utils/utils.ts — файл с утилитами
 
@@ -96,8 +96,8 @@ interface IOrder {
 
 ```typescript
 interface IBasket {
-	items: string[];
-	total: number;
+	items: string[]; // массив товаров 
+	total: number; // общая стоимость
 }
 ```
 
