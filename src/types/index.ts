@@ -21,18 +21,18 @@ export type TOrderPayment = 'cash' | 'card';
 
 // Для описания заказа используется интерфейс IOrder: (корзина->заказ)
 export interface IOrder {
-	items: IProduct[]; // Массив ID купленных товаров
+	items: IProduct[]; // список купленных товаров
 	total: number; // стоимость заказа
-	payment: TOrderPayment; // Способ оплаты
+	payment: string; // Способ оплаты
 	address: string; // Адрес доставки
 	email: string; // Электронная почта
 	phone: string; // Телефон
 }
 
-// Содержит список товаров и итоговую стоимость
-export interface IBasket {
-	items: string[];
-	total: number;
+// Интерфейс описывает данные корзины покупок
+export interface IBasket { 
+  items: string[]; // Список товаров в корзине
+  total: number; // Итоговая стоимость корзины
 }
 
 // для валидации полей ввода.
