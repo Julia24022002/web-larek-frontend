@@ -7,34 +7,6 @@ export interface IProduct {
 	price: number | null; // цена товара, может быть null
 	description?: string; // описание товара
 }
-
-// Интерфес данных для заказа
-export interface IOrder {
-	payment: TPayment; // Способ оплаты
-	address: string; // Адрес доставки
-	email: string; // Электронная почта
-	phone: string; // Телефон
-}
-
-//Данные для корзины с товарами
-export interface IBasket {
-	items: TProductInBasket[]; 
-	total: number; 
-}
-
-// Данные успешного ответа от сервера при отправке заказа
-export interface IOrderResult {
-	id: string;
-	total: number;
-}
-
-// Данные для каталога товара
-export interface IProductList {
-	items: IProduct[];
-	preview: string | null;
-}
-
-
 // Интерфейс модели данных товаров
 export interface IProductData {
 	products: IProduct[]; //массив обьектов карточек
@@ -43,26 +15,51 @@ export interface IProductData {
 	setProducts(products: IProduct[]): void; // принимает массив и обновляет свойство products
 }
 
-// Интерфейс данных для формы заказа
-export interface IOrderData {
-	payment: TPayment; // Способ оплаты
-	address: string; // Адрес доставки
+// Интерфес данных с форм заказа
+export interface IOrderContactForm {
 	email: string; // Электронная почта
 	phone: string; // Телефон
-  }
+}
 
-// Интерфейс модели данных корзины
+export interface IOrderPaymentForm {
+	payment: TPayment; // Способ оплаты
+	address: string; // Адрес доставки
+}
+
+export interface IOrderForm extends IOrderContactForm, IOrderPaymentForm {}
+
+// Интерфейс итоговых данных с заказа
+export interface IOrderData extends IOrderForm {
+	total: number; // общая стоимость с корзины
+	items: string[]; // список товаров
+}
+
+// Интерфейс модели заказа
+export interface IOrder {
+	_order: IOrderData;
+	setProducts(items: string[]): void;
+	clearOrderData(): void;
+	setOrderField(field: keyof IOrderForm, value: string): void;
+	validateOrder(): boolean;
+}
+
+// Интерфейс модели данных для корзины
 export interface IBasketData {
-	items: IProductInBasket[]; // список товаров в корзине
-	total: number; // общая стоимость корзины
-
-
-
+	items: TProductInBasket[]; // список товаров в корзине
+	getTotalPrice(): number; // метод для вычисления общей стоимости корзины
+	addProduct(product: TProductInBasket): void;
+	deleteProduct(id: string): void;
+	getTotalPrice(): number;
+	getTotalProducts(): number;
+	checkProduct(id: string): boolean;
 	clearBasket(): void;
 }
 
-
-
+// Данные успешного ответа от сервера при отправке заказа
+export interface IOrderResult {
+	id: string;
+	total: number;
+}
 
 // Тип описывающий категории товаров
 export type TCategoryType =
@@ -80,17 +77,10 @@ export type TProductInBasket = Pick<IProduct, 'id' | 'title' | 'price'> & {
 //  Тип способа оплаты
 export type TPayment = 'cash' | 'card';
 
-// тип модального окна выбора способа оплаты и ввода адреса
-export type TDeliveryInfo = Pick<IOrder, 'payment' | 'address'>;
+// Тип ошибок формы
+export type FormErrors = Partial<Record<keyof IOrderData, string>>;
 
-//  тип модального окна ввод почты и телефона (контакты)
-export type TContactsInfo = Pick<IOrder, 'email' | 'phone'>;
-
-// Тип для общей суммы заказа
-export type TTotalPrice = Pick<IBasket, 'total'>;
-
-
-
-
-
-
+export interface IBasketView {
+	products: HTMLElement[];
+	total: number;
+}
