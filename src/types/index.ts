@@ -9,12 +9,9 @@ export interface IProduct {
 }
 // Интерфейс модели данных товаров
 export interface IProductData {
-	products: IProduct[]; //массив обьектов карточек
-	preview: string | null; // id карточки, выбранной для просмотра в модальном окне или добавленной в корзину
-	getProduct(productId: string): IProduct; //получение выбранной карточки товара по id для просмотра
-	setProducts(products: IProduct[]): void; // принимает массив и обновляет свойство products
+	products: IProduct[];
+	getProduct(id: string): IProduct | undefined;
 }
-
 // Интерфес данных с форм заказа
 export interface IOrderContactForm {
 	email: string; // Электронная почта
@@ -22,7 +19,7 @@ export interface IOrderContactForm {
 }
 
 export interface IOrderPaymentForm {
-	payment: TPayment; // Способ оплаты
+	payment: string; // Способ оплаты
 	address: string; // Адрес доставки
 }
 
@@ -30,6 +27,7 @@ export interface IOrderForm extends IOrderContactForm, IOrderPaymentForm {}
 
 // Интерфейс итоговых данных с заказа
 export interface IOrderData extends IOrderForm {
+	customerInfo: any;
 	total: number; // общая стоимость с корзины
 	items: string[]; // список товаров
 }
@@ -45,42 +43,92 @@ export interface IOrder {
 
 // Интерфейс модели данных для корзины
 export interface IBasketData {
-	items: TProductInBasket[]; // список товаров в корзине
-	getTotalPrice(): number; // метод для вычисления общей стоимости корзины
-	addProduct(product: TProductInBasket): void;
-	deleteProduct(id: string): void;
-	getTotalPrice(): number;
-	getTotalProducts(): number;
+	purchases: IProduct[];
+	addPurchase(value: IProduct): void;
+	deletePurchase(id: string): void;
+	getQuantity(): number;
 	checkProduct(id: string): boolean;
-	clearBasket(): void;
+	getTotal(): number;
+	getIdList(): string[];
+	clear(): void;
 }
+
+export interface ISuccessData {
+	orderSuccess: TSuccessData;
+}
+
+export interface ISuccess {
+	description: string;
+}
+export interface IOrderConstructor {
+	new (): IOrderData;
+}
+export interface IOrderDataBuilder {
+	purchasesInfo: TPurchasesInfo;
+	deliveryInfo: IOrderPaymentForm;
+	contactsInfo: IOrderContactForm;
+	getOrderData(): IOrderData;
+}
+
+export interface ISuccess {
+	description: string;
+}
+
+export interface IFormOrder {
+	payment: TPayment | null;
+	address: string;
+	valid: boolean;
+	clear(): void;
+	render(data: object): HTMLElement;
+}
+export interface IModal {
+	content: HTMLElement;
+	open(): void;
+	close(): void;
+}
+
+export interface IForm {
+	valid: boolean;
+	errorMessage: string;
+	clear(): void;
+}
+
+export interface ICard {
+	id: string;
+	title: string;
+	price: string;
+}
+
+//   ТИПЫ
 
 // Данные успешного ответа от сервера при отправке заказа
-export interface IOrderResult {
-	id: string;
-	total: number;
-}
+export type TOrderResult = { id: string; total: number };
 
-// Тип описывающий категории товаров
-export type TCategoryType =
-	| 'софт-скил'
-	| 'другое'
-	| 'дополнительное'
-	| 'кнопка'
-	| 'хард-скил';
+export type TId = { id: string };
 
-// Тип для товара в корзине
-export type TProductInBasket = Pick<IProduct, 'id' | 'title' | 'price'> & {
-	index: number;
-};
+export type TForm = { valid: boolean };
+
+export type TModal = { content: HTMLElement };
+
+export type TFormOrder = { payment: TPayment; address: string };
+
+export type TPage = { counter: number; catalog: HTMLElement[] };
+
+export type TSuccess = { description: string };
+
+export type TPurchasesInfo = Pick<IOrderData, 'total' | 'items'>;
+
+export type TSuccessData = { id: string; total: number };
 
 //  Тип способа оплаты
 export type TPayment = 'cash' | 'card';
 
 // Тип ошибок формы
-export type FormErrors = Partial<Record<keyof IOrderData, string>>;
+export type TFormErrors = Partial<Record<keyof IOrderData, string>>;
 
-export interface IBasketView {
-	products: HTMLElement[];
-	total: number;
-}
+export type TCardCatalog = Omit<IProduct, 'description'>;
+
+// Тип для товара в корзине
+export type TProductInBasket = Pick<IProduct, 'id' | 'title' | 'price'> & {
+	index: number;
+};
