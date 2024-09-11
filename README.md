@@ -90,10 +90,13 @@ interface IBasket {
 }
 ```
 
-- Тип успешного ответа от сервера при отправке заказа
+- Данные успешного ответа от сервера при отправке заказа 
 
 ```typescript
-type TOrderResult = { id: string; total: number };
+interface IOrderResult { 
+	id: string;  //id успешного заказа
+	total: number; //общая стоимость
+} 
 ```
 
 - Тип описывающий категории товаров
