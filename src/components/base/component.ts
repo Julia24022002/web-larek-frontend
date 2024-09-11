@@ -1,5 +1,5 @@
 // Базовый компонент
-import { IEvents } from '../base/events';
+import { IEvents } from './Events';
 export abstract class Component<T> {
 	protected container: HTMLElement;
 	protected events: IEvents;

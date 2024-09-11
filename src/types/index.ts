@@ -1,124 +1,71 @@
 // Интерфейс данных для товара
 export interface IProduct {
-	id: string; // уникальный id
-	category: string; // категория товара
-	title: string; // название  товара
-	image: string; // ссылка на изображение товара
-	price: number | null; // цена товара, может быть null
-	description?: string; // описание товара
+    id: string; // уникальный id
+    category: string; // категория товара
+    title: string; // название  товара
+    image: string;  // ссылка на изображение товара
+    price: number | null; // цена товара, может быть null
+    description?: string; // описание товара
 }
-// Интерфейс модели данных товаров
+
+// Интерфейс модели данных товаров 
 export interface IProductData {
-	products: IProduct[];
-	getProduct(id: string): IProduct | undefined;
-}
-// Интерфес данных с форм заказа
-export interface IOrderContactForm {
-	email: string; // Электронная почта
-	phone: string; // Телефон
+    products: IProduct[]; //массив обьектов карточек 
+    getProduct(id: string): IProduct; //находит товар по id и возвращает его.
 }
 
-export interface IOrderPaymentForm {
-	payment: string; // Способ оплаты
-	address: string; // Адрес доставки
+//  интерфейс, описывающий данные о способе оплаты и доставке заказа
+export interface IPaymentForm {
+    payment: TPayment; // Способ оплаты
+    address: string; // Адрес доставки
 }
 
-export interface IOrderForm extends IOrderContactForm, IOrderPaymentForm {}
+// интерфейс, описывающий контактные данные заказчика
+export interface IContactForm {
+    email: string; // электронная почта
+    phone: string; // номер телефона
+}
+// интерфейс, все данные с формы заказа
+export interface IOrderForm extends IPaymentForm, IContactForm { }
 
-// Интерфейс итоговых данных с заказа
+// Интерфейс итоговых данных с заказа 
 export interface IOrderData extends IOrderForm {
-	customerInfo: any;
-	total: number; // общая стоимость с корзины
-	items: string[]; // список товаров
+    total: number; // общая стоимость с корзины
+    items: string[]; // список товаров
 }
 
-// Интерфейс модели заказа
+// интерфейс модели заказа
 export interface IOrder {
-	_order: IOrderData;
-	setProducts(items: string[]): void;
-	clearOrderData(): void;
-	setOrderField(field: keyof IOrderForm, value: string): void;
-	validateOrder(): boolean;
+    _order: IOrderData; //данные заказа
+    // setProducts(items: string[]): void; 
+    clearOrderData(): void;
+    setOrderField(field: keyof IOrderForm, value: string): void;
+    validateOrder(): boolean;
 }
 
-// Интерфейс модели данных для корзины
+// интерфейс корзины товаров
+export interface IBasket {
+    items: HTMLElement[];
+    total: number;
+    emptyCheck: boolean;
+};
+
+// Интерфейс модели данных для корзины 
 export interface IBasketData {
-	purchases: IProduct[];
-	addPurchase(value: IProduct): void;
-	deletePurchase(id: string): void;
-	getQuantity(): number;
-	checkProduct(id: string): boolean;
-	getTotal(): number;
-	getIdList(): string[];
-	clear(): void;
+    items: IProduct[]; // товары в корзине
+    addProduct(value: IProduct): void; // добавление товара в корзину
+    deleteProduct(id: string): void;//удаление товара из корзины
+    getTotalPrice(): number;//получить сумму всех товаров, добавленных в корзину
+    getTotalProducts(): number;//получить общее количество добавленных товаров в корзину
+    checkProduct(id: string): boolean;// определяет по id, есть ли данный товар уже в корзине
+    clearBasket(): void;// очищает корзину
 }
 
-export interface ISuccessData {
-	orderSuccess: TSuccessData;
-}
-
-export interface ISuccess {
-	description: string;
-}
-export interface IOrderConstructor {
-	new (): IOrderData;
-}
-export interface IOrderDataBuilder {
-	purchasesInfo: TPurchasesInfo;
-	deliveryInfo: IOrderPaymentForm;
-	contactsInfo: IOrderContactForm;
-	getOrderData(): IOrderData;
-}
-
-export interface ISuccess {
-	description: string;
-}
-
-export interface IFormOrder {
-	payment: TPayment | null;
-	address: string;
-	valid: boolean;
-	clear(): void;
-	render(data: object): HTMLElement;
-}
-export interface IModal {
-	content: HTMLElement;
-	open(): void;
-	close(): void;
-}
-
-export interface IForm {
-	valid: boolean;
-	errorMessage: string;
-	clear(): void;
-}
-
-export interface ICard {
-	id: string;
-	title: string;
-	price: string;
-}
-
-//   ТИПЫ
-
-// Данные успешного ответа от сервера при отправке заказа
-export type TOrderResult = { id: string; total: number };
-
-export type TId = { id: string };
-
-export type TForm = { valid: boolean };
-
-export type TModal = { content: HTMLElement };
-
-export type TFormOrder = { payment: TPayment; address: string };
-
-export type TPage = { counter: number; catalog: HTMLElement[] };
-
-export type TSuccess = { description: string };
-
-export type TPurchasesInfo = Pick<IOrderData, 'total' | 'items'>;
-
-export type TSuccessData = { id: string; total: number };
+// Данные успешного ответа от сервера при отправке заказа 
+export interface IOrderResult { 
+	id: string;  //id успешного заказа
+	total: number; //общая стоимость
+} 
 
 //  Тип способа оплаты
 export type TPayment = 'cash' | 'card';
@@ -126,9 +73,15 @@ export type TPayment = 'cash' | 'card';
 // Тип ошибок формы
 export type TFormErrors = Partial<Record<keyof IOrderData, string>>;
 
-export type TCardCatalog = Omit<IProduct, 'description'>;
+// Тип описывающий категории товаров 
+export type TCategoryType =
+    | 'софт-скил'
+    | 'другое'
+    | 'дополнительное'
+    | 'кнопка'
+    | 'хард-скил';
 
-// Тип для товара в корзине
+// Тип для товара в корзине 
 export type TProductInBasket = Pick<IProduct, 'id' | 'title' | 'price'> & {
-	index: number;
-};
+    index: number;
+}; 

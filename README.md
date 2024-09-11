@@ -1,7 +1,5 @@
 # Проектная работа "Веб-ларек"
 
-## Описание
-
 Стек: HTML, SCSS, TS, Webpack
 
 Структура проекта:
@@ -15,7 +13,7 @@
 - src/pages/index.html — HTML-файл главной страницы
 - src/types/index.ts — файл с типами
 - src/index.ts — точка входа приложения
-- src/scss/styles.scss — корневой файл стилей
+- src/styles/styles.scss — корневой файл стилей
 - src/utils/constants.ts — файл с константами
 - src/utils/utils.ts — файл с утилитами
 
@@ -56,7 +54,7 @@ yarn build
 ```typescript
 interface IProduct {
 	id: string; // уникальный id
-	category: TCategoryType; // категория товара
+	category: string; // категория товара
 	title: string; // название  товара
 	image: string; // ссылка на изображение товара
 	price: number | null; // цена товара, может быть null
@@ -64,39 +62,49 @@ interface IProduct {
 }
 ```
 
-- Интерфейс данных заказа
+- интерфейс, описывающий данные о способе оплаты и доставке заказа
 
 ```typescript
-interface IOrder {
+interface IPaymentForm {
 	payment: TPayment; // Способ оплаты
 	address: string; // Адрес доставки
-	email: string; // Электронная почта
-	phone: string; // Телефон
 }
 ```
 
-- Данные для корзины с товарами
+- Интерфейс, описывающий контактные данные заказчика
+
+```typescript
+interface IContactForm {
+	email: string; // электронная почта
+	phone: string; // номер телефона
+}
+```
+
+- Интерфейс, описывающий корзину товара
 
 ```typescript
 interface IBasket {
-	items: TProductInBasket[]; // список товаров
-	// total: number; // стоимость заказа
+	items: HTMLElement[]; // массив карточек товаров
+	total: number; // общая стоимость
+	emptyCheck: boolean; // пуста корзина или нет
 }
 ```
 
-- Данные успешного ответа от сервера при отправке заказа
+- Тип успешного ответа от сервера при отправке заказа
 
 ```typescript
-interface IOrderResult {
-	id: string;
-	total: number;
-}
+type TOrderResult = { id: string; total: number };
 ```
 
-- Тип для товара в корзине
+- Тип описывающий категории товаров
 
 ```typescript
-type TCardBasket = Pick<IProduct, 'id' | 'title' | 'price'> & { index: number };
+type TCategoryType =
+	| 'софт-скил'
+	| 'другое'
+	| 'дополнительное'
+	| 'кнопка'
+	| 'хард-скил';
 ```
 
 - Тип способа оплаты
@@ -105,22 +113,18 @@ type TCardBasket = Pick<IProduct, 'id' | 'title' | 'price'> & { index: number };
 type TPayment = 'cash' | 'card';
 ```
 
-- Тип модального окна выбора способа оплаты и ввода адреса
+- Тип для ошибок формы
 
 ```typescript
-type TDeliveryInfo = Pick<IOrder, 'payment' | 'address'>;
+type TFormErrors = Partial<Record<keyof IOrderData, string>>;
 ```
 
-- Тип модального окна ввод почты и телефона
+- Тип для товара в корзине
 
 ```typescript
-type TContactsInfo = Pick<IOrder, 'email' | 'phone'>;
-```
-
-- Тип для общей суммы заказа
-
-```typescript
-type TTotalPrice = Pick<IBasket, 'total'>;
+type TProductInBasket = Pick<IProduct, 'id' | 'title' | 'price'> & {
+	index: number;
+};
 ```
 
 ### Архитекрута приложения
@@ -204,6 +208,7 @@ type TTotalPrice = Pick<IBasket, 'total'>;
 Поля:
 
 - `protected _products: IProduct[] `- массив объектов товаров.
+- `protected _preview: string | null` - id товара, выбранной для просмотра в модальном окне
 
 Параметры в конструкторе:
 
@@ -211,34 +216,26 @@ type TTotalPrice = Pick<IBasket, 'total'>;
 
 Методы, геттеры и сеттеры:
 
-- `set products(value: IProduct[]): void` - записывает массив продуктов в \_products
-- `get products(): IProduct[]` - возвращает массив продуктов \_products
 - `getProduct(id: string): IProduct` - находит товар по id и возвращает его.
+- `get products(): IProduct[]` - возвращает массив продуктов \_products
+- `set products(value: IProduct[]): void` - записывает массив продуктов в \_products
+- `set preview(productId: string | null)` - Записывает в поле \_preview выбранный товар для показа в модальном окне
+- `get preview()` - Получение ID выбранного товара для просмотра в модальном окне
 
 #### Класс `OrderData`
 
 Отвечает за хранение и логику работы с данными при оформлении заказа (выбор способа оплаты, адрес доставки, email и телефон покупателя).
-
 Поля:
 
-- `protected _payment: TPayment` - способ оплаты
-- `protected _email: string` - email покупателя
-- `protected _phone: string `- номер телефона покупателя
-- `protected _address: string` - адрес покупателя
-- `protected _total: number `- общая стоимость заказанных товаров
-- `protected _items: string[] `- список id товаров заказа
-  Параметры в конструкторе:
-- `параметры -`
-
-Методы, геттеры и сеттеры:
-
-- `set payment(value: TPayment): void `- запись способа оплаты
-- `set email(value: string): void` - запись email покупателя
-- `set phone(value: string): void` - запись номера телефона покупателя
-- `set address(value: string): void` - запись адреса покупателя
-- `set total(value: number): void `- запись общей суммы покупок
-- `set items(value: string[]) `- запись id товаров заказа
-- `get customerInfo(): ICustomer` - возвращение всей информации о заказе в формате необходимом для отправки в теле post запроса на сервер.
+- `_order: IOrderData` - все данные заказа
+- `formErrors: FormErrors = {} `- массив с текстом ошибок форм.
+  Конструктор:
+- Параметры `-`
+  Методы:
+- `get order() `- получить все данные заказа
+- `clearOrderData(): void` - очищает массив данных после заказа
+- `setOrderField(field: keyof IOrderForm, value: string) `- записывает данные с полей форм в массив данных заказа \_order
+- `validateOrder() `- валидация форм
 
 #### Класс `BasketData`
 
@@ -246,7 +243,7 @@ type TTotalPrice = Pick<IBasket, 'total'>;
 
 Поля:
 
-- `protected _purchases: IProduct[]` - массив добавленных товаров в корзине покупателя.
+- `protected _productInBasket: IProduct[]` - массив добавленных товаров в корзине покупателя.
 
 Параметры в конструкторе:
 
@@ -254,49 +251,12 @@ type TTotalPrice = Pick<IBasket, 'total'>;
 
 Методы, геттеры и сеттеры:
 
-- `get purchases(): IProduct[]` - получить массив добавленных товаров в корзину (\_purchases)
-- `addPurchase(value: IProduct): void` - добавить товар в массив \_purchases
-- `deletePurchase(id: string): void `- удалить товар из массива \_purchases
-- `getQuantity(): number` - получить общее количество добавленных товаров в корзину
-- `checkProduct(id: string)` - определяет по id, есть ли данный товар уже в корзине
-- `getTotal(): number` - получить общую сумму всех товаров, добавленных в корзину
-- `getIdList(): string[] `- получить список id товаров добавленных в корзину (нужен для post запроса при оформлении заказа)
-- `clear(): void `- очистка корзины
-
-#### Класс `OrderDataBuilder`
-
-Расширяет класс Model. Класс является билдером класса OrderData. Т.к. формирование заказа происходит в 3 этапа (1 - добавление товаров в корзину, 2 - указание способа покупки и адреса доставки, 3 - указание email и телефона), то экземпляр класса OrderData также создается поэтапно, благодаря классу OrderDataBuilder.
-
-Поля:
-
-- `protected order: IOrderData` - экземпляр интерфейса - IOrderData (такой же как экземпляр класс OrderData)
-  Параметры в конструкторе:
-
-- `параметры Model`
-- `orderConstructor: IOrderConstructor `- класс, создающий объекты интерфейса IOrderData.
-
-Методы, геттеры и сеттеры:
-
-- `set purchasesInfo: TPurchasesInfo `- запись информации с корзины (1 этап)
-- `set deliveryInfo: TDeliveryInfo` - запись информации с формы доставки (2 этап)
-- `set contactsInfo: TContactsInfo` - запись информации с формы контактной информации (3 этап)
-- `getOrderData(): ICustomer` - возвращение готового результата.
-
-#### Класс `SuccessData`
-
-Расширяет класс Model. Класс отвечает за данные, получаемые с сервера после успешного оформления заказа
-
-Поля:
-
-- `protected _orderSuccess: TSuccessData `- данные об успешном заказе, поступающие с сервера.
-
-Параметры в конструкторе:
-
-- `параметры Model.`
-
-Методы, геттеры и сеттеры:
-
-- `set orderSuccess (value: TSuccessData): void `- запись данных оформленного заказа, поступающие с сервера.
+- `addProduct(product: TProductInBasket): void `- добавление товара в корзину
+- `deleteProduct(id: string): void` - удаление товара из корзины
+- `getTotalPrice(): number` - получить сумму всех товаров, добавленных в корзину
+- `getTotalProducts(): number;` - получить общее количество добавленных товаров в корзину
+- `checkProduct(id: string): boolean;` - определяет по id, есть ли данный товар уже в корзине
+- `clearBasket(): void` - очищает корзину
 
 ## Слой представления (View)
 
@@ -310,7 +270,7 @@ type TTotalPrice = Pick<IBasket, 'total'>;
 
 Поля класса:
 
-- `buttonClose: HTMLButtonElement` - кнопка закрытия
+- `_closeButton: HTMLButtonElement` - кнопка закрытия
 - `_content: HTMLElement` - контент модального окна
 
 Методы:
@@ -324,11 +284,10 @@ type TTotalPrice = Pick<IBasket, 'total'>;
 Класс для работы с корзиной, наследуется от класса Component (реализация слоя View). Класс используется для управления отображением данных (товаров, цены) в компоненте корзины
 
 Поля класса содержат DOM элементы темплейта:
-Поля
 
-- `protected _cardsList: HTMLUListElement `- html элемент, отвечающий за отображение списка карточек в корзине
-- `protected _totalPrice: HTMLSpanElement;` - html элемент, отвечающий за отображение общей стоимости товаров
-- `protected buttonСheckout: HTMLButtonElement` - кнопка "Оформить".
+- `protected _products: HTMLUListElement `- html элемент, отвечающий за отображение списка карточек в корзине
+- `protected _getTotalPrice: HTMLElement` - html элемент, отвечающий за отображение общей стоимости товаров
+- `protected _button: HTMLElement` - кнопка "Оформить".
 
 Параметры в конструкторе:
 
@@ -336,9 +295,9 @@ type TTotalPrice = Pick<IBasket, 'total'>;
 
 Методы, геттеры и сеттеры:
 
-- `set cardsList(cards: HTMLElement[]): void` - устанавливает список карточек добавленных товаров в корзину
-- `set emptyCheck(state: boolean): void `- для блокировки кнопки "Оформить", если корзина пуста
-- `set total(value: number) `- устанавливает общую стоимость товаров в html элемент \_totalPrice.
+- `set products(items: HTMLElement[]): void` - устанавливает список карточек добавленных товаров в корзину
+- `set total(total: number) `- устанавливает общую стоимость товаров в html элемент \_totalPrice.
+- `toggleButton(state: boolean): void `- для блокировки кнопки "Оформить", если корзина пуста
 
 #### Класс `Form`
 
@@ -346,8 +305,6 @@ type TTotalPrice = Pick<IBasket, 'total'>;
 
 Поля:
 
-- `protected container: HTMLFormElement`- соответствующая форма
-- `protected inputsList: HTMLInputElement[]` - массив input элементов формы
 - `protected submitButton: HTMLButtonElement` - кнопка отправки формы
 - `protected _errorMessage: HTMLSpanElement` - html элемент для отображения ошибок формы.
 
@@ -357,20 +314,18 @@ type TTotalPrice = Pick<IBasket, 'total'>;
 
 - `get valid(): boolean `- получения статуса валидности формы
 - `set valid(value: boolean):void` - запись для блокировки (true) / разблокировки (false) кнопки submit
-  set errorMessage(value: string) - установка текста ошибок
+- `set errorMessage(value: string)`- установка текста ошибок
 - `clear():void` - очистка формы
-- `render(data: Partial<T> & TForm ): HTMLElement` - модернизированный render View для форм: учитывает установку обязательных полей valid и errorMessage.
+- `render()` - метод рендер для формы
 
-#### Класс `OrderForm`
+#### Класс `PaymentForm`
 
 Расширяет класс `Form`. Форма для указания способа доставки и адреса доставки.
 
 Поля:
 
-- `protected containerButtons: HTMLDivElement `- контейнер, содержащий кнопки "онлайн" и "при получении"
-- `protected buttonCard: HTMLButtonElement` - кнопка "онлайн"
-- `protected buttonCash: HTMLButtonElement` - кнопка "при получении"
-- `protected inputAddress: HTMLInputElement` - поле для ввода адреса покупателя.
+- `protected _payment: HTMLButtonElement[] `- выбор способа оплаты
+- `protected _address: HTMLInputElement` - поле ввода адреса
 
 Параметры в конструкторе:
 
@@ -378,13 +333,9 @@ type TTotalPrice = Pick<IBasket, 'total'>;
 
 Методы, геттеры и сеттеры:
 
-- `protected getButtonActive(): HTMLButtonElement | null `- служебный метод: возвращает кнопку, которая активна, либо null, если никто из них неактивна
-- `protected resetButtons(): void` - служебный метод: очищает класс активности с кнопок "Онлайн" и "При получении"
-- `clear(): void `- Очищает форму (в том числе снимает класс активности с кнопок)
-- `get payment(): TPayment | null` - возвращает имя активной кнопки (нужно для записи способа покупки), либо null
-- `get address(): string` - возвращает адрес покупателя
-- `get valid(): boolean `- возвращает валидность формы. В данном случае форма валидна, если была нажата одна из кнопок и в поле ввода не пустое значение. Также записывается текст ошибки
-- `set valid(value: boolean):void `- запись для блокировки (true) / разблокировки (false) кнопки submit.
+- `set paymentSelected(name: string)` - вешается класс на кнопку выбранного способа оплаты и инициализируется - событие куда передается выбранный способ оплаты.
+- `paymentSelectedRemove()` - удаляет класс с активной кнопки после заказа\
+- `set address(value: string)` - записывает адрес в поле \_address
 
 #### Класс `ContactForm`
 
@@ -392,8 +343,8 @@ type TTotalPrice = Pick<IBasket, 'total'>;
 
 Поля
 
-- `protected inputEmail: HTMLInputElement` - текстовое поле для email
-- `protected inputPhone: HTMLInputElement` - текстовое поле для номера телефона.
+- `protected _email: HTMLInputElement` - текстовое поле для email
+- `protected _phone: HTMLInputElement` - текстовое поле для номера телефона.
 
 Параметры в конструкторе:
 
@@ -401,10 +352,8 @@ type TTotalPrice = Pick<IBasket, 'total'>;
 
 Методы, геттеры и сеттеры:
 
-- `get email(): string `- возвращает email из поля ввода email
-- `get phone(): string` - возвращает номер телефона из поля ввода phone
-- `get valid(): boolean` - возвращает валидность формы. В данном случае форма валидна, если все поля заполнены. Также записывается текст ошибки
-- `set valid(value: boolean):void `- запись для блокировки (true) / разблокировки (false) кнопки submit.
+- `set email(value: string)` - записывает email в поле \_email
+- `set phone(value: string)` - записывает телефон в поле \_phone
 
 #### Класс `Success`
 
@@ -412,8 +361,9 @@ type TTotalPrice = Pick<IBasket, 'total'>;
 
 Поля
 
-- `protected buttonOrderSuccess: HTMLButtonElement `- кнопка "За новыми покупками"
-- `protected _description: HTMLParagraphElement `- html элемент, отвечающий за показ потраченных средств за все покупки.
+- `protected _total: HTMLElement` - общая сумма заказа
+
+- `protected button: HTMLElement` - кнопка закрытия
 
 Параметры в конструкторе:
 
@@ -421,7 +371,7 @@ type TTotalPrice = Pick<IBasket, 'total'>;
 
 Методы, геттеры и сеттеры:
 
-- `set description(total: string): void `- устанавливает количество потраченных средств в html элемент \_description.
+- `set total(value: number)` - заполняет общую сумму заказа
 
 #### Классы представлений конкретного проекта:
 
@@ -443,18 +393,20 @@ type TTotalPrice = Pick<IBasket, 'total'>;
 Методы, геттеры и сеттеры:
 
 - `set catalog(cards: HTMLElement[]): void` - записывает карточки в \_catalog для отображения их на главной странице
-- `set counter(value: string): void `- записывает количество добавленных товаров в корзину
-- `lockScreen(value: boolean): void` - данный метод служит для блокировки/разблокировки экрана(окна), чтоб не было его прокрутки при открытии/закрытии модального окна.
+- `set counter(value: number): void `- записывает количество добавленных товаров в корзину
+- `set locked(value: boolean): void` - данный метод служит для блокировки/разблокировки экрана(окна), чтоб не было его прокрутки при открытии/закрытии модального окна.
 
 #### Класс `Card`
 
-Расширяет класс Component. Является абстрактным классом, имеющий общие поля у трех разновидностей карточек в приложении: карточка в каталоге на главной странице (CardCatalog), карточка подробного описания товара в модальном окне (CardPreview) и карточка товара в корзине (CardBasket).
+Расширяет класс Component<T>. Служит для отображения карточки в каталоге на главной странице приложения.
 
 Поля:
 
 - `protected _id: string` - id карточки товара
 - `protected _title: HTMLHeadingElement` - html элемент, отвечающий за отображение имени товара
 - `protected _price: HTMLSpanElement `- html элемент, отвечающий за отображение цены товара.
+- `protected _image: HTMLImageElement` - html элемент, отвечающий за отображение изображения товара
+- `protected _category: HTMLSpanElement` - html элемент, отвечающий за отображение категории товара.
 
 Методы:
 
@@ -462,58 +414,29 @@ type TTotalPrice = Pick<IBasket, 'total'>;
 - `get id(): string` - получение id карточки товара
 - `set title(value: string): void` - запись имени карточки товара
 - `set price(value: string): void `- запись цены товара
-
-#### Класс ` CardCatalog`
-
-Расширяет класс Card, также является классом дженериком. Служит для отображения карточки в каталоге на главной странице приложения.
-
-Поля:
-
-- `protected _image: HTMLImageElement` - html элемент, отвечающий за отображение изображения товара
-- `protected _category: HTMLSpanElement` - html элемент, отвечающий за отображение категории товара.
-
-Параметры в конструкторе:
-
-- `параметры класса Card.`
-
-Методы:
-
-- `protected addCSSClassCategory(value: string): void `- служебный метод, предназначенный для присваивания определенного css класса html элементу категории товара в зависимости от ее названия (установка фонового цвета)
 - `set image(src: string): void` - запись данных изображения товара
 - `set category(value: string): void` - запись данных категории товара
 
-#### Класс `CardBasket`
 
-Расширяет класс Card. Служит для отображения карточки товара в корзине
 
-Поля:
-
-- `_index: HTMLSpanElement `- html элемент, отвечающий за отображение порядкового номера в корзине
-- `buttonDelCard: HTMLButtonElement `- иконка корзины, по клику на которую удаляется соответствующая карточка.
-
-Параметры в конструкторе:
-
-- `параметры класса Card.`
-
-Методы:
-
-- `set index(value: number): void `- записывает порядковый номер карточки в корзине.
 
 #### Класс `CardPreview`
 
-Расширяет класс CardCatalog. Служит для предварительного просмотра карточки товара с более детальным описанием и возможностью добавления его в корзину.
+Подкласс класса Card. Служит для предварительного просмотра карточки товара с более детальным описанием и возможностью добавления его в корзину.
 
 Поля:
 
-- `protected _description: HTMLParagraphElement `- html элемент, отвечающий за отображение описания товара
-- `protected buttonBuyDelete: HTMLButtonElement` - кнопка для покупки товара или удаления товара из корзины в случае, если он уже был добавлен в нее.
+- `_index: HTMLSpanElement `- html элемент, отвечающий за отображение порядкового номера.
+
+- `protected _description: HTMLParagraphElement `- html элемент, отвечающий за отображение описания товара.
+
 
 Методы, геттеры и сеттеры:
 
+- `set index(value: number): void `- записывает порядковый номер карточки.
+
 - `set description(value: string): void `- записвает описание товара
-- `set priceCheck(value: boolean): void `- записывает булево значение для блокировки/разблокировки кнопки добавления в корзину, если в модальном окне открыт бесценный товар: true - блокирует кнопку, false - разблокирует кнопку
-- `get priceCheck(): boolean `- возвращает булево значение для блокировки/разблокировки кнопки добавления в корзину
-- `set state(value: boolean)` - устанавливает состояние кнопки
+
 
 ## слой коммуникации
 
@@ -532,9 +455,8 @@ type TTotalPrice = Pick<IBasket, 'total'>;
 
 Методы, геттеры и сеттеры:
 
-- `getProducts(): Promise<IProduct[]>` - получает с сервера массив объектов всех товаров
-- `getProductById(id: string): Promise<IProduct> `- получает с сервера конкретный товар по id
-- `postOrder(order: ICustomer): Promise<TSuccessData>` - отправляет post запрос на сервер, содержащий данные о заказе и получает по итогу номер заказа (id) и общую сумму заказ (total).
+- `getProduct(id: string): Promise<IProduct[]>` - Метод для получения списка товаров
+- `getProductItem(id: string): Promise<IProduct> `- получает с сервера конкретный товар по id
 
 ## Взаимодействие компонетов (Presenter)
 
@@ -542,18 +464,4 @@ type TTotalPrice = Pick<IBasket, 'total'>;
 Взаимодействие осуществляется за счет событий, генерируемых с помощью брокера событий и обработчиков этих событий, описанных в index.ts В index.ts сначала создаются экземпляры всех необходимых классов, а затем настраивается обработка событий.
 
 ## Описание событий
-
-- `products:changed `- изменение массива данных продуктов
-- `purchases:changed `- изменение массива покупок(добавленные товары покупателем в корзину)
-- `success:changed` - событие, возникающее при получении(изменении) данных успешного заказа.
-- `modal:open `- событие, срабатывающее при открытии модального окна
-- `modal:close` - событие, срабатывающее при закрытии модального окна
-- `modal-card:open` - выбор карточки для отображения в модальном окне
-- `modal-basket:open `- открытие модального окна для отображения корзины
-- `purchases:add `- событие при добавлении товара в покупки покупателя
-- `purchases:delete` - событие при удалении товара из покупок покупателя
-- `modal-order:open` - открытие модального окна с формой доставки
-- `order:valid` - событие, возникающее при действиях покупателя с полями формы доставки
-- `order:submit` - событие, возникающее при успешном прохождении формы доставки
-- `contacts:valid `- событие, возникающее при действиях покупателя с полями формы контактных данных
-- `contacts:submit `- событие, возникающее при успешном прохождении формы контактных данных.
+g 

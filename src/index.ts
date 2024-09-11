@@ -1,7 +1,7 @@
 // делаем необходиме импорты для приложения
 import './scss/styles.scss';
 import { API_URL, CDN_URL } from './utils/constants';
-import { EventEmitter } from "./components/base/events";
+import { EventEmitter } from "./components/base/Events";
 import { cloneTemplate, ensureElement } from './utils/utils';
 import { ProductAPI } from './components/ProductAPI';
 import { ProductData } from './components/model/ProductData';
