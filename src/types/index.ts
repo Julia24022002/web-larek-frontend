@@ -37,7 +37,7 @@ export interface IOrderData extends IOrderForm {
 // интерфейс модели заказа
 export interface IOrder {
     _order: IOrderData; //данные заказа
-    // setProducts(items: string[]): void; 
+    get order(): IOrderData;
     clearOrderData(): void;
     setOrderField(field: keyof IOrderForm, value: string): void;
     validateOrder(): boolean;
@@ -45,15 +45,16 @@ export interface IOrder {
 
 // интерфейс корзины товаров
 export interface IBasket {
-    items: HTMLElement[];
+    // index?: number;
+    products: HTMLElement[];
     total: number;
     emptyCheck: boolean;
 };
 
 // Интерфейс модели данных для корзины 
 export interface IBasketData {
-    items: IProduct[]; // товары в корзине
-    addProduct(value: IProduct): void; // добавление товара в корзину
+    items: TProductInBasket[]; // товары в корзине
+    addProduct(product: TProductInBasket): void; // добавление товара в корзину
     deleteProduct(id: string): void;//удаление товара из корзины
     getTotalPrice(): number;//получить сумму всех товаров, добавленных в корзину
     getTotalProducts(): number;//получить общее количество добавленных товаров в корзину
@@ -67,6 +68,8 @@ export interface IOrderResult {
 	total: number; //общая стоимость
 } 
 
+// Тип для товара в корзине 
+export type TProductInBasket =Pick<IProduct, 'id' | 'title' | 'price'>;
 //  Тип способа оплаты
 export type TPayment = 'cash' | 'card';
 
@@ -81,7 +84,5 @@ export type TCategoryType =
     | 'кнопка'
     | 'хард-скил';
 
-// Тип для товара в корзине 
-export type TProductInBasket = Pick<IProduct, 'id' | 'title' | 'price'> & {
-    index: number;
-}; 
+    export type TId = {id: string};
+

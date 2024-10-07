@@ -1,161 +1,191 @@
-// делаем необходиме импорты для приложения
+
+// // делаем необходиме импорты для приложения
 import './scss/styles.scss';
-import { API_URL, CDN_URL } from './utils/constants';
-import { EventEmitter } from "./components/base/Events";
-import { cloneTemplate, ensureElement } from './utils/utils';
+
 import { ProductAPI } from './components/ProductAPI';
+import { API_URL, CDN_URL } from './utils/constants';
+import { EventEmitter } from "./components/base/events";
+import { cloneTemplate, ensureElement } from './utils/utils';
+
+
 import { ProductData } from './components/model/ProductData';
 import { BasketData } from './components/model/BasketData';
 import { OrderData } from './components/model/OrderData';
-import { OrderDataBuilder } from './components/model/OrderDataBuilder';
-import { SuccessData } from './components/model/SuccessData';
-import { CardCatalog } from './components/view/CardCatalog';
-import { CardBasket } from './components/view/CardBasket';
-import { CardPreview } from './components/view/CardPreview';
+
+
+import { Card, CardPreview, ICard } from './components/view/Card';
 import { Page } from './components/view/Page';
 import { Basket } from './components/view/Basket';
 import { Modal } from './components/view/Modal';
-import { OrderForm } from './components/view/OrderForm';
+import { PaymentForm } from './components/view/PaymentForm';
 import { ContactForm } from './components/view/ContactForm';
-import { Success } from './components/view/Success';
-import { IProduct, TCardCatalog, TId, TSuccessData } from './types';
+import { Success } from './components/view/Succcess';
+import { IOrder, IProduct, TProductInBasket, IOrderForm, TId } from './types';
 
-//найдем необходимые контейнеры и темплейты для классов представления
-const containerPage = ensureElement<HTMLElement>('.page');
-const containerModal = ensureElement<HTMLDivElement>('#modal-container');
+import { IProductData } from './types';
+// import { BasketCard } from './components/view/BasketCard';
+// import { BasketCard } from './components/view/BasketCard';
+
+
+//экземпляры классов EventEmitter и ProductAPI
+const events = new EventEmitter();
+const api = new ProductAPI(CDN_URL, API_URL);
+
+// шаблоны
 const templateCardCatalog = ensureElement<HTMLTemplateElement>('#card-catalog');
 const templateCardPreview = ensureElement<HTMLTemplateElement>('#card-preview');
 const templateCardBasket = ensureElement<HTMLTemplateElement>('#card-basket');
 const templateBasket = ensureElement<HTMLTemplateElement>('#basket');
-const templateOrder = ensureElement<HTMLTemplateElement>('#order');
+const templatePayment = ensureElement<HTMLTemplateElement>('#order');
 const templateContacts = ensureElement<HTMLTemplateElement>('#contacts');
 const templateSuccess = ensureElement<HTMLTemplateElement>('#success');
 
-//Создаем необходимые экземпляры классов EventEmitter и AppApi
-const api = new ProductAPI(CDN_URL, API_URL);
-const events = new EventEmitter();
 
-//Создаем необходимые экземпляры классов слоя модели
-const productsData = new ProductData(events);
+// экземпляры классов СЛОЙ МОДЕЛИ
+const productData = new ProductData(events);
+const orderData = new OrderData(events);
 const basketData = new BasketData(events);
-const orderDataBuilder = new OrderDataBuilder(events, OrderData);
-const successData = new SuccessData(events);
 
-//Создаем необходимые экземпляры классов слоя представления
+
+const containerPage = ensureElement<HTMLElement>('.page');
+const containerModal = ensureElement<HTMLDivElement>('#modal-container');
+
+
+// экземпляры классов СЛОЙ ПРЕДСТАВЛЕНИЯ
 const page = new Page(containerPage, events);
-const modal = new Modal(containerModal, events);
-const cardPreview = new CardPreview(cloneTemplate(templateCardPreview), events);
 const basket = new Basket(cloneTemplate(templateBasket), events);
-const formOrder = new OrderForm(cloneTemplate(templateOrder), events);
-const formContacts = new ContactForm(cloneTemplate(templateContacts), events);
-const success = new Success(cloneTemplate(templateSuccess), events);
+const modal = new Modal(containerModal, events);
+const contactForm = new ContactForm(cloneTemplate(templateContacts), events);
+const paymentForm = new PaymentForm(cloneTemplate(templatePayment), events);
+// const success = new Success(cloneTemplate(templateSuccess), events);
+const cardPreview = new CardPreview(cloneTemplate(templateCardPreview), events);
+// const basketCard = new BasketCard(cloneTemplate(templateCardBasket), events);
 
-//Обработаем события изменения данных 
-//получение данных о продуктах с сервера
-api.getProducts().then((data) => {
-  productsData.products = data
-}).catch(console.error)
+// Получаем ПРОДУКТЫ С СЕРВЕРА
+api
+    .getProducts()
+    .then((data) => {
+        productData.products = data;
+        console.log(data)
+    })
+    .catch((err) => {
+        console.error(err);
+    });
 
-//реагируем на изменение (получение) данных о продуктах 
+// ИЗМЕНЕНИЯ В КАТАЛОГЕ
 events.on('products:changed', (products: IProduct[]) => {
-  const cardsList = products.map((product) => {
-    const card = new CardCatalog<TCardCatalog>(cloneTemplate(templateCardCatalog), events);
-    return card.render(product)
- })
- page.render({catalog: cardsList})
+    const cardsList = products.map((product) => {
+        const card = new Card(cloneTemplate(templateCardCatalog), events);
+
+        return card.render(product);
+    });
+    page.render({ catalog: cardsList });
 });
 
-//Прежде чем переходить к пользовательски событиям, обработаем поведение модального окна 
-//обработаем событие открытия модального окна
+
+// открытие мод окна
 events.on('modal:open', () => {
-  page.lockScreen(true);
+    page.locked = true;
 });
 
-//обработаем событие закрытия модального окна
+// // закрытие мод окна
 events.on('modal:close', () => {
-  page.lockScreen(false);
+    page.locked = false;
 });
 
-//Далее идет обработка пользовательских событий 
-//обработаем событие, когда покупатель кликнул по иконке(кнопке) корзины на главной старанице
+// обработка событий
+// клик по иконке тележки на глав экране
 events.on('modal-basket:open', () => {
-  modal.render({ content: basket.render({total: basketData.getTotal(), emptyCheck: basketData.getQuantity() === 0})});
-  modal.open();
+    modal.render({ content: basket.render({ total: basketData.getTotalPrice(), emptyCheck: basketData.getTotalProducts() === 0 }) });
+    // , items: basket.products(basketData.items)
+    modal.open();
 });
+
+
 
 //обработаем событие, когда покупатель кликнул по какой-нибудь карточке в каталоге на главной странице
-events.on('modal-card:open',(data: TId) => {
-  const productCorrect = productsData.getProduct(data.id);
-  if(productCorrect) { 
-  modal.render({ content: cardPreview.render({...productCorrect, priceCheck: Boolean(productCorrect.price), state: basketData.checkProduct(productCorrect.id)})});
-  modal.open();
-  }
+events.on('modal-card:open', (data: TId) => {
+    const productOpen = productData.getProduct(data.id);
+    if (productOpen) {
+
+        modal.render({ content: cardPreview.render(productOpen) });
+        modal.open();
+    }
 });
 
+
+// клик на кнопку в корзину
 //обработаем событие добавления товара в корзину
 events.on('purchases:add', (data: TId) => {
-  basketData.addPurchase(productsData.getProduct(data.id))
+    basketData.addProduct(productData.getProduct(data.id));
+    modal.close();
+
 });
 
-//обработаем событие удаления товара из корзины 
+
+//обработаем событие удаления товара из корзины
 events.on('purchases:delete', (data: TId) => {
-  basketData.deletePurchase(data.id)
+    basketData.deleteProduct(data.id)
 });
 
-//обработаем событие на изменения в покупках пользователя и сформируем корзину
-events.on('purchases:changed', (data: TId) => {
-  cardPreview.render({priceCheck: true, state: !basketData.checkProduct(data.id)});
-  page.render({counter: basketData.getQuantity()});
-  const purchasesList = basketData.purchases.map((purchase, index) => {
-    const cardBasket = new CardBasket(cloneTemplate(templateCardBasket), events);
-    return cardBasket.render({...purchase, index: ++index})
-  });
-  basket.render({cardsList: purchasesList, total: basketData.getTotal(), emptyCheck: basketData.getQuantity() === 0})
-});
 
-//после того, как определились с покупками, записываем данные с корзины, необходмые для заказа и переходим к форме доставки: обработаем данное событие
-events.on('modal-order:open', () => {
-  orderDataBuilder.purchasesInfo = {total: basketData.getTotal(), items: basketData.getIdList()};
-  modal.render({content: formOrder.render({valid: formOrder.valid})})
-});
 
-//обработаем взаимодействие пользователя с полями формы доставки
-events.on('order:valid', () => {
-  formOrder.valid = formOrder.valid;
-  orderDataBuilder.deliveryInfo = {payment: formOrder.payment, address: formOrder.address}
-});
+// //обработаем событие на изменения в покупках пользователя и сформируем корзину
 
-//после заполнения формы доставки и записи для заказа соответствующих данных для заказа, переходи к форме контактных данных: обработаем данное событие
-events.on(`order:submit`, () => {
-  modal.render({content: formContacts.render({valid: formContacts.valid})})
-});
+// events.on('basket:changed', () => {
+//     page.render({ counter: basketData.getTotalProducts() });
 
-//обработаем взаимодействие пользователя с полями формы контактных данных
-events.on('contacts:valid', () => {
-  formContacts.valid = formContacts.valid;
-  orderDataBuilder.contactsInfo = {email: formContacts.email, phone: formContacts.phone};
-});
+// });
 
-/*
-после успешного заполнения формы контактных данных отправляем сформированный заказ на сервер,
-получаем от сервера данные, записываем их и очищаем корзину и формы: обработаем данное событие
-*/
-events.on('contacts:submit', () => {
-  const order = orderDataBuilder.getOrderData().customerInfo;
-  api.postOrder(order).then((data: TSuccessData) => {
-    successData.orderSuccess = data;
-    formOrder.clear();
-    formContacts.clear();
-    basketData.clear();
-  }).catch(console.error)
-});
 
-//реагируем на получение данных с сервера и записываем в соответсвующий объект класса слоя данных
-events.on('success:changed', (data: TSuccessData) => {
-  modal.render({content: success.render({description: String(data.total)})})
-});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// формы
+// //после того, как определились с покупками, записываем данные с корзины, необходмые для заказа и переходим к форме доставки: обработаем данное событие
+// events.on('modal-order:open', () => {
+//  
+// });
+
+// //обработаем взаимодействие пользователя с полями формы доставки
+// events.on('order:valid', () => {
+// 
+
+// //после заполнения формы доставки и записи для заказа соответствующих данных для заказа, переходи к форме контактных данных: обработаем данное событие
+// events.on(`order:submit`, () => {
+// });
+
+// //обработаем взаимодействие пользователя с полями формы контактных данных
+// events.on('contacts:valid', () => {
+// 
+
+// /*
+// после успешного заполнения формы контактных данных отправляем сформированный заказ на сервер,
+// получаем от сервера данные, записываем их и очищаем корзину и формы: обработаем данное событие
+// */
+// events.on('contacts:submit', () => {
+//  
+
+// //реагируем на получение данных с сервера и записываем в соответсвующий объект класса слоя данных
+// events.on('success:changed', () => {
+// });
 
 //событие об успешной покупке обрабатываем путем закрытия окна нажатием на кнопку "За новыми покупками"
 events.on('success:confirm', () => {
-  modal.close();
+    modal.close();
 })
