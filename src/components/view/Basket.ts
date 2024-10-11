@@ -1,46 +1,55 @@
-import { ensureElement } from '../../utils/utils';
+import { ensureElement, createElement } from '../../utils/utils';
 import { Component } from '../base/component';
 import { IEvents } from '../base/events';
-import { IBasket , TProductInBasket} from '../../types/index'
+import { IBasket } from '../../types/index'
 
 export class Basket extends Component<IBasket> {
-  
-    protected _products: HTMLUListElement;
-    protected _getTotalPrice: HTMLSpanElement;
+    protected _products: HTMLElement;
+    protected _total: HTMLSpanElement;
     protected _button: HTMLButtonElement;
-   
+
     constructor(container: HTMLElement, protected events: IEvents) {
         super(container);
 
-        this._products = ensureElement<HTMLUListElement>('.basket__list', container);
-        this._getTotalPrice = ensureElement<HTMLSpanElement>('.basket__price',container);
-        this._button = ensureElement<HTMLButtonElement>('.basket__button', container);
+        this._products = ensureElement<HTMLElement>('.basket__list', this.container);
+        this._total = ensureElement<HTMLSpanElement>('.basket__price', this.container);
+        this._button = ensureElement<HTMLButtonElement>('.basket__button', this.container);
+        this.products = [];
 
-        this._button.addEventListener('click', () => this.events.emit('modal-order:open'));
+        if (this._button) {
+            this._button.addEventListener('click', () => {
+                events.emit('order:open');
+            });
+        }
     }
 
     set products(items: HTMLElement[]) {
-        this._products.innerHTML = '';
-        items.forEach(item => {
-            this._products.appendChild(item);
-        });
+        if (items.length) {
+            items.forEach((item, index) => {
+                const itemIndex = item.querySelector('.basket__item-index');
+
+                if (itemIndex) {
+                    itemIndex.textContent = (index + 1).toString();
+                }
+            });
+
+            this._products.replaceChildren(...items);
+            this.setDisabled(this._button, false);
+        } else {
+            this._products.replaceChildren(
+                createElement<HTMLElement>('p', {
+                    textContent: 'Корзина пуста',
+                })
+            );
+            this.setDisabled(this._button, true);
+        }
     }
 
     // общая стоимость
-    set total(total: number) {
-        this._getTotalPrice.textContent = String(total) + ' синапсов';
-    }
-
-    // Блокируем или разблокируем
-    toggleButton(state: boolean) {
-        this._button.disabled = state;
+    set total(value: number) {
+        this._total.textContent = String(value) + ' синапсов';
     }
 }
 
 
 
-
-
-// - `set products(items: HTMLElement[])` - устанавливает список карточек добавленных товаров в корзину
-// - `set total(total: number) `- устанавливает общую стоимость товаров в html элемент \_totalPrice.
-// - `toggleButton(state: boolean) `- для блокировки кнопки "Оформить", если корзина пуста

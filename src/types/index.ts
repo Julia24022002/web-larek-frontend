@@ -16,7 +16,7 @@ export interface IProductData {
 
 //  интерфейс, описывающий данные о способе оплаты и доставке заказа
 export interface IPaymentForm {
-    payment: TPayment; // Способ оплаты
+    payment: string; // Способ оплаты
     address: string; // Адрес доставки
 }
 
@@ -25,30 +25,31 @@ export interface IContactForm {
     email: string; // электронная почта
     phone: string; // номер телефона
 }
+
 // интерфейс, все данные с формы заказа
 export interface IOrderForm extends IPaymentForm, IContactForm { }
 
 // Интерфейс итоговых данных с заказа 
-export interface IOrderData extends IOrderForm {
+export interface IOrder extends IOrderForm {
     total: number; // общая стоимость с корзины
     items: string[]; // список товаров
 }
 
 // интерфейс модели заказа
-export interface IOrder {
-    _order: IOrderData; //данные заказа
-    get order(): IOrderData;
-    clearOrderData(): void;
+export interface IOrderData {
+    _order: IOrder; //данные заказа
+    _formErrors: TFormErrors;
+    get order(): IOrder;
+    get formErrors(): TFormErrors
+    clearOrder(): void;
     setOrderField(field: keyof IOrderForm, value: string): void;
     validateOrder(): boolean;
 }
 
 // интерфейс корзины товаров
 export interface IBasket {
-    // index?: number;
-    products: HTMLElement[];
+    products: TProductInBasket[];
     total: number;
-    emptyCheck: boolean;
 };
 
 // Интерфейс модели данных для корзины 
@@ -63,26 +64,16 @@ export interface IBasketData {
 }
 
 // Данные успешного ответа от сервера при отправке заказа 
-export interface IOrderResult { 
-	id: string;  //id успешного заказа
-	total: number; //общая стоимость
-} 
+export interface IOrderResult {
+    total: number; //общая стоимость
+}
 
 // Тип для товара в корзине 
-export type TProductInBasket =Pick<IProduct, 'id' | 'title' | 'price'>;
+export type TProductInBasket = Pick<IProduct, 'id' | 'title' | 'price'>;
+
 //  Тип способа оплаты
 export type TPayment = 'cash' | 'card';
 
 // Тип ошибок формы
-export type TFormErrors = Partial<Record<keyof IOrderData, string>>;
-
-// Тип описывающий категории товаров 
-export type TCategoryType =
-    | 'софт-скил'
-    | 'другое'
-    | 'дополнительное'
-    | 'кнопка'
-    | 'хард-скил';
-
-    export type TId = {id: string};
+export type TFormErrors = Partial<Record<keyof IOrder, string>>;
 

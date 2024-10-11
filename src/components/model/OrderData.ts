@@ -1,81 +1,67 @@
-import { IOrderData, TPayment, IOrderForm, IOrder } from '../../types';
+import { IOrderData, IOrderForm, IOrder, TFormErrors } from '../../types';
 import { IEvents } from '../base/events';
 
+export class OrderData implements IOrderData {
+  _formErrors: TFormErrors;
+  _order: IOrder = {
+    total: 0,
+    items: [],
+    email: '',
+    phone: '',
+    address: '',
+    payment: '',
+  };
 
-export class OrderData implements IOrder {
+  constructor(protected events: IEvents) {
+    this.events = events;
+  }
 
-  _order: IOrderData;
-  formErrors: { [key: string]: string } = {};
-
-  constructor(events: IEvents) {
-    this._order = {
-        payment: null,
-        address: '',
-        email: '',
-        phone: '',
-        total: 0,
-        items: []
-    };
-}
-
-  get order(): IOrderData {
+  get order(): IOrder {
     return this._order;
   }
 
-  clearOrderData(): void {
+  get formErrors(): TFormErrors {
+    return this._formErrors;
+  }
+
+  setOrderField(field: keyof IOrderForm, value: string) {
+    this._order[field] = value;
+    this.validateOrder();
+  }
+
+  clearOrder() {
     this._order = {
-      payment: null,
-      address: '',
+      total: 0,
+      items: [],
       email: '',
       phone: '',
-      total: 0,
-      items: []
+      address: '',
+      payment: '',
     };
+    this._formErrors = {};
   }
 
-  // Метод для установки значения в поле заказа
-  setOrderField(field: keyof IOrderForm, value: string): void {
-    if (field === 'payment') {
-      if (value.toLowerCase() === 'card' || value.toLowerCase() === 'cash') {
-        this._order[field] = value.toLowerCase() as TPayment;
-      } else {
-        this.formErrors.payment = 'Выберите способ оплаты';
-      }
-    } else {
-      this._order[field] = value;
-    }
-  }
+  validateOrder() {
+    const errors: TFormErrors = {};
 
-  validateOrder(): boolean {
-    this.formErrors = {};
-
-    // Проверка полей 
-    if (!this._order.email) {
-      this.formErrors.email = 'Введите электронную почту';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this._order.email)) {
-      this.formErrors.email = 'Неверный формат почты';
+    if (!this.order.payment) {
+      errors.payment = 'Выберете способ оплаты ';
     }
 
-    if (!this._order.phone) {
-      this.formErrors.phone = 'Введите номер телефона';
+    if (!this.order.address) {
+      errors.address = 'Введите адрес';
     }
 
-    if (!this._order.address) {
-      this.formErrors.address = 'Введите адрес';
+    if (!this.order.email) {
+      errors.email = 'Введите email';
     }
 
-    if (!this._order.payment) {
-      this.formErrors.payment = 'Выберите способ оплаты';
+    if (!this.order.phone) {
+      errors.phone = 'Введите номер телефона';
     }
 
-    return Object.keys(this.formErrors).length === 0;
+    this._formErrors = errors;
+    this.events.emit('formErrors:change', this.formErrors);
+    return Object.keys(errors).length === 0;
   }
 }
-
-
-// Методы:
-// - `get order() `- получить все данные заказа
-// - `clearOrderData(): void` - очищает массив данных после заказа
-// - `setOrderField(field: keyof IOrderForm, value: string) `- записывает данные с полей форм в массив данных заказа \_order
-// - `validateOrder() `- валидация форм
-

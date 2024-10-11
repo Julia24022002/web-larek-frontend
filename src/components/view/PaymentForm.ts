@@ -1,39 +1,39 @@
 import { ensureElement } from '../../utils/utils';
 import { IEvents } from '../base/events';
 import { Form } from "./Form";
-import { IPaymentForm , TPayment} from "../../types/index";
-
-
+import { IPaymentForm, TPayment } from "../../types/index";
 
 export class PaymentForm extends Form<IPaymentForm> {
-    protected _payment: HTMLButtonElement[];
     protected _address: HTMLInputElement;
+    protected buttonCard: HTMLButtonElement;
+    protected buttonCash: HTMLButtonElement;
 
     constructor(container: HTMLFormElement, protected events: IEvents) {
         super(container, events);
 
-        // this._payment = Array.from(container.querySelectorAll('button[name="payment"]')) as HTMLButtonElement[]; 
-        // this._address = ensureElement<HTMLInputElement>('input[name=address]');
-    }
+        this._address = ensureElement<HTMLInputElement>('input[name="address"]', this.container);
+        this.buttonCard = ensureElement<HTMLButtonElement>('button[name="card"]', this.container);
+        this.buttonCash = ensureElement<HTMLButtonElement>('button[name="cash"]', this.container);
 
+        this.buttonCard.addEventListener('click', () => {
+            this.payment = 'card';
+            this.onInputChange('payment', 'card');
+        });
 
-    set paymentSelected(name: string) {
-
-    }
-
-    paymentSelectedRemove() {
-        this._payment.forEach(button => {
-            button.classList.remove('active'); 
+        this.buttonCash.addEventListener('click', () => {
+            this.payment = 'cash';
+            this.onInputChange('payment', 'cash');
         });
     }
 
     set address(value: string) {
         this._address.value = value;
     }
+
+    set payment(value: TPayment) {
+        this.buttonCard.classList.toggle('button_alt-active', value === 'card');
+        this.buttonCash.classList.toggle('button_alt-active', value === 'cash');
+    }
 }
 
 
-
-// set paymentSelected(name: string)` - вешается класс на кнопку выбранного способа оплаты и инициализируется - событие куда передается выбранный способ оплаты.
-// - `paymentSelectedRemove()` - удаляет класс с активной кнопки после заказа\
-// - `set address(value: string)` - записывает адрес в поле \_address

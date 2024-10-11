@@ -2,57 +2,57 @@ import { ensureElement } from '../../utils/utils';
 import { Component } from '../base/component';
 import { IEvents } from '../base/events';
 
-
 // Интерфейс для формы
 export interface IForm {
-    valid: boolean;
-    errorMessage: string;
+  valid: boolean;
+  errors: string[];
 }
-
 
 export abstract class Form<T> extends Component<IForm> {
-    protected container: HTMLFormElement;
-    protected submitButton: HTMLButtonElement;
-    protected _errorMessage: HTMLSpanElement;
+  protected _submit: HTMLButtonElement;
+  protected _errors: HTMLElement;
 
-    constructor(container: HTMLFormElement, protected events: IEvents) {
-        super(container);
+  constructor(protected container: HTMLFormElement, protected events: IEvents) {
+    super(container);
 
-        this.submitButton = ensureElement<HTMLButtonElement>('button[type=submit]', container);
-        this._errorMessage = ensureElement<HTMLSpanElement>('.form__errors', container);
+    this._submit = ensureElement<HTMLButtonElement>(
+      'button[type=submit]',
+      this.container
+    );
+    this._errors = ensureElement<HTMLElement>('.form__errors', this.container);
 
-    }
+    this.container.addEventListener('input', (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      const field = target.name as keyof T;
+      const value = target.value;
+      this.onInputChange(field, value);
+    });
 
-    // get valid(): boolean {
-    //     return !this.submitButton.disabled;
-    // }
+    this.container.addEventListener('submit', (e: Event) => {
+      e.preventDefault();
+      this.events.emit(`${this.container.name}:submit`);
+    });
+  }
 
-    set valid(value: boolean) {
-        this.submitButton.disabled = value;
-    }
+  protected onInputChange(field: keyof T, value: string) {
+    this.events.emit(`${this.container.name}.${String(field)}:change`, {
+      field,
+      value,
+    });
+  }
 
-    // Установка смс об ошибке
-    set errorMessage(value: string) {
-        this._errorMessage.textContent = value
-    }
+  set valid(value: boolean) {
+    this._submit.disabled = !value;
+  }
 
-    // очистка формы
-    clear(): void {
-        this.container.reset();
-        this.errorMessage = '';
-    }
+  set errors(value: string) {
+    this.setText(this._errors, value);
+  }
 
-
-    // render() {
-
-    // }
+  render(state: Partial<T> & IForm) {
+    const { valid, errors, ...inputs } = state;
+    super.render({ valid, errors });
+    Object.assign(this, inputs);
+    return this.container;
+  }
 }
-
-
-
-
-//   `get valid(): boolean `- получения статуса валидности формы
-// - `set valid(value: boolean):void` - запись для блокировки (true) / разблокировки (false) кнопки submit
-// - `set errorMessage(value: string)`- установка текста ошибок
-// - `clear():void` - очистка формы
-// - `render()` - метод рендер для формы

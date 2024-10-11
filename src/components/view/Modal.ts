@@ -2,13 +2,9 @@ import { ensureElement } from '../../utils/utils';
 import { Component } from '../base/component';
 import { IEvents } from '../base/events';
 
-
 export interface IModal {
     content: HTMLElement;
-    open(): void;
-    close(): void;
 }
-
 
 export class Modal extends Component<IModal> {
     protected _content: HTMLElement;
@@ -32,15 +28,8 @@ export class Modal extends Component<IModal> {
         this.events.emit('modal:open');
     }
 
-    close(){
+    close() {
         this.container.classList.remove('modal_active');
         this.events.emit('modal:close');
     }
 }
-
-
-
-
-//  - `set content(value: HTMLElement)` - устанавливает разметку модального окна
-// - `open(): void` - метод отображения модального окна
-// - `close(): void`- метод для закрытия модального окна.

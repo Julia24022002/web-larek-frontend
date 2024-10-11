@@ -1,17 +1,14 @@
 import { Api, ApiListResponse } from "./base/api";
-import { IProduct, IOrder } from '../types/index';
+import { IProduct, IOrder, IOrderResult } from '../types/index';
 
 
 export interface IProductApi {
-    getProducts(): Promise<IProduct[]>;
-    // getProductItem(id: string): Promise<IProduct> ;
-	// getProductById(id: string): Promise<IProduct>;
+	getProducts(): Promise<IProduct[]>;
 }
 
 export class ProductAPI extends Api implements IProductApi {
-    protected cdn: string;
+	protected cdn: string;
 
-    
 	constructor(cdn: string, baseUrl: string, options?: RequestInit) {
 		super(baseUrl, options);
 		this.cdn = cdn;
@@ -25,17 +22,9 @@ export class ProductAPI extends Api implements IProductApi {
 			}))
 		);
 	}
-	// getProductById(id: string): Promise<IProduct> {
-	// 	return this.get('/product/' + id).then((product: IProduct) => {
-	// 	  return {...product, image: this.cdn + product.image}
-	// 	})
-	//   }
-	
 
-	//   orderProducts(order: IOrder): Promise<IOrder> {
-	// 	return this._baseApi
-	// 		.post<IOrder>(`/order`, order)
-	// 		.then((data: IOrder) => data);
-	// }
+	orderProduct(order: IOrder): Promise<IOrderResult> {
+		return this.post(`/order`, order).then((data: IOrderResult) => data);
+	}
 }
 

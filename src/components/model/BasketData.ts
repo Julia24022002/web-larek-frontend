@@ -1,14 +1,14 @@
 import { Model } from '../base/model';
-import { IBasketData, IProduct, TProductInBasket } from '../../types';
+import { IBasketData, TProductInBasket } from '../../types';
 import { IEvents } from '../base/events';
 
 export class BasketData extends Model implements IBasketData {
-    protected _products: TProductInBasket[] = []; // Массив добавленных товаров в корзину
+    protected _products: TProductInBasket[] = []; 
 
     constructor(events: IEvents) {
         super(events);
+        this.events = events;
     }
-    
 
     // Геттер для получения всех товаров в корзине
     get items(): TProductInBasket[] {
@@ -18,15 +18,14 @@ export class BasketData extends Model implements IBasketData {
     // Метод для добавления продукта в корзину
     addProduct(product: TProductInBasket) {
         console.log('Товар, который добавляем в корзину:', product);
-    	this._products = [product, ...this._products];
-		this.events.emit('basket:changed');
-	}
-
+        this._products.push(product);
+        this.events.emit('basket:changed');
+    }
 
     // Метод для удаления продукта из корзины
     deleteProduct(id: string): void {
         this._products = this._products.filter((product) => product.id !== id);
-        this.events.emit('basket:changed', this._products);
+        this.events.emit('basket:changed');
     }
 
     // Метод для получения общей цены всех товаров в корзине
@@ -43,9 +42,6 @@ export class BasketData extends Model implements IBasketData {
     checkProduct(id: string): boolean {
         return this._products.some(product => product.id === id);
     }
-    getCardIndex(product: TProductInBasket) {
-		return this._products.indexOf(product) + 1;
-	}
 
     // Очищает корзину и вызывает событие обновления.
     clearBasket(): void {
