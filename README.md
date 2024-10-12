@@ -413,7 +413,7 @@ type TProductInBasket = Pick<IProduct, 'id' | 'title' | 'price'>;
 - `set id(value: string): void` - запись id карточки товара
 - `get id(): string` - получение id карточки товара
 - `set title(value: string): void` - запись имени карточки товара
-- `set price(value: number | null): void `- запись цены товара
+- `set price(value: number): void `- запись цены товара
 - `set image(src: string): void` - запись данных изображения товара
 - `set category(value: string): void` - запись данных категории товара
 - `set description(value: string): void `- записвает описание товара
@@ -454,7 +454,8 @@ type TProductInBasket = Pick<IProduct, 'id' | 'title' | 'price'>;
 - `purchases:add` - добавление товара в корзину
 - `basket:changed` - формирование корзины
 - `order:open` - открытие окна оформления заказа
-- `formErrors:change` - изменились ошибки валидации
+- `formErrorsContact:change` - изменились ошибки валидации формы контактов
+- `formErrorsPayment:change` - изменились ошибки валидации формы оплаты и адреса
 - `order:submit` - открытие окна оформления контактных данных
 - `contacts:submit` - отправка формы
 - `order:ready` - данные валидны

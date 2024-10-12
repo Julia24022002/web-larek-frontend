@@ -1,22 +1,21 @@
 import { IOrderData, IOrderForm, IOrder, TFormErrors } from '../../types';
 import { IEvents } from '../base/events';
+import { Model } from '../base/model';
 
-export class OrderData implements IOrderData {
+export class OrderData extends Model implements IOrderData {
   _formErrors: TFormErrors;
-  _order: IOrder = {
-    total: 0,
-    items: [],
+  _order: IOrderForm = {
     email: '',
     phone: '',
     address: '',
     payment: '',
   };
 
-  constructor(protected events: IEvents) {
-    this.events = events;
+  constructor(events: IEvents) {
+    super(events);
   }
 
-  get order(): IOrder {
+  get order(): IOrderForm {
     return this._order;
   }
 
@@ -31,8 +30,6 @@ export class OrderData implements IOrderData {
 
   clearOrder() {
     this._order = {
-      total: 0,
-      items: [],
       email: '',
       phone: '',
       address: '',
@@ -65,3 +62,4 @@ export class OrderData implements IOrderData {
     return Object.keys(errors).length === 0;
   }
 }
+

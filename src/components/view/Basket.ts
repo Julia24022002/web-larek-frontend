@@ -14,13 +14,12 @@ export class Basket extends Component<IBasket> {
         this._products = ensureElement<HTMLElement>('.basket__list', this.container);
         this._total = ensureElement<HTMLSpanElement>('.basket__price', this.container);
         this._button = ensureElement<HTMLButtonElement>('.basket__button', this.container);
-        this.products = [];
 
-        if (this._button) {
-            this._button.addEventListener('click', () => {
-                events.emit('order:open');
-            });
-        }
+        this._button.addEventListener('click', () => {
+            events.emit('order:open');
+        });
+
+        this.initBasket();
     }
 
     set products(items: HTMLElement[]) {
@@ -32,22 +31,26 @@ export class Basket extends Component<IBasket> {
                     itemIndex.textContent = (index + 1).toString();
                 }
             });
-
+            
             this._products.replaceChildren(...items);
             this.setDisabled(this._button, false);
         } else {
-            this._products.replaceChildren(
-                createElement<HTMLElement>('p', {
-                    textContent: 'Корзина пуста',
-                })
-            );
-            this.setDisabled(this._button, true);
+            this.initBasket();
         }
+    }
+
+    private initBasket() {
+        this._products.replaceChildren(
+            createElement<HTMLElement>('p', {
+                textContent: 'Корзина пуста',
+            })
+        );
+        this.setDisabled(this._button, true);
     }
 
     // общая стоимость
     set total(value: number) {
-        this._total.textContent = String(value) + ' синапсов';
+        this.setText(this._total, value + ' синапсов');
     }
 }
 

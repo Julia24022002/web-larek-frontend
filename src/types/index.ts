@@ -37,9 +37,9 @@ export interface IOrder extends IOrderForm {
 
 // интерфейс модели заказа
 export interface IOrderData {
-    _order: IOrder; //данные заказа
+    _order: IOrderForm; //данные заказа
     _formErrors: TFormErrors;
-    get order(): IOrder;
+    get order(): IOrderForm;
     get formErrors(): TFormErrors
     clearOrder(): void;
     setOrderField(field: keyof IOrderForm, value: string): void;

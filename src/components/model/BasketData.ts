@@ -7,7 +7,6 @@ export class BasketData extends Model implements IBasketData {
 
     constructor(events: IEvents) {
         super(events);
-        this.events = events;
     }
 
     // Геттер для получения всех товаров в корзине
@@ -17,7 +16,7 @@ export class BasketData extends Model implements IBasketData {
 
     // Метод для добавления продукта в корзину
     addProduct(product: TProductInBasket) {
-        console.log('Товар, который добавляем в корзину:', product);
+        // console.log('Товар, который добавляем в корзину:', product);
         this._products.push(product);
         this.events.emit('basket:changed');
     }
@@ -46,22 +45,9 @@ export class BasketData extends Model implements IBasketData {
     // Очищает корзину и вызывает событие обновления.
     clearBasket(): void {
         this._products = [];
-        this.events.emit('basket:changed', this._products);
+        this.events.emit('basket:changed');
     }
 }
-
-
-
-
-
-// - `addProduct(product: TProductInBasket): void `- добавление товара в корзину
-// - `deleteProduct(id: string): void` - удаление товара из корзины
-// - `getTotalPrice(): number` - получить сумму всех товаров, добавленных в корзину
-// - `getTotalProducts(): number;` - получить общее количество добавленных товаров в корзину
-// - `checkProduct(id: string): boolean;` - определяет по id, есть ли данный товар уже в корзине
-// - `clearBasket(): void` - очищает корзину
-
-
 
 
 
