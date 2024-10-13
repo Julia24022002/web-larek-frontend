@@ -1,4 +1,4 @@
-import { IOrderData, IOrderForm, IOrder, TFormErrors } from '../../types';
+import { IOrderData, IOrderForm, IOrder, TFormErrors, TPayment } from '../../types';
 import { IEvents } from '../base/events';
 import { Model } from '../base/model';
 
@@ -24,8 +24,18 @@ export class OrderData extends Model implements IOrderData {
   }
 
   setOrderField(field: keyof IOrderForm, value: string) {
-    this._order[field] = value;
+    const previousValue = this._order[field];
+
+    this._order[field] = value;   // УСТАН НОВ ЗНАЧ
     this.validateOrder();
+
+    if (field === 'payment' && previousValue !== value) {
+      this.events.emit('order:changed', { payment: value });
+    }
+  }
+
+  setPaymentMethod(value: TPayment) {
+    this.setOrderField('payment', value); // устан метода оплаты
   }
 
   clearOrder() {

@@ -16,7 +16,7 @@ import { Modal } from './components/view/Modal';
 import { PaymentForm } from './components/view/PaymentForm';
 import { ContactForm } from './components/view/ContactForm';
 import { Success } from './components/view/Succcess';
-import { IProduct, IOrderForm, IContactForm, IPaymentForm } from './types';
+import { IProduct, IOrderForm, IContactForm, IPaymentForm, TPayment } from './types';
 
 //экземпляры классов EventEmitter и ProductAPI
 const events = new EventEmitter();
@@ -164,6 +164,11 @@ events.on(
         events.emit('formErrorsPayment:change', orderData.formErrors);
     }
 );
+
+events.on('order:changed', (data: { payment: TPayment }) => {
+    const paymentMethod = data.payment;
+    paymentForm.payment = paymentMethod; //ВЫЗОВ С НОВ ЗНАЧ
+  });
 
 events.on('formErrorsPayment:change', (err: Partial<IPaymentForm>) => {
     const { payment, address } = err;

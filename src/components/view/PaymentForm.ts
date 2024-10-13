@@ -16,13 +16,11 @@ export class PaymentForm extends Form<IPaymentForm> {
         this.buttonCash = ensureElement<HTMLButtonElement>('button[name="cash"]', this.container);
 
         this.buttonCard.addEventListener('click', () => {
-            this.payment = 'card';
-            this.onInputChange('payment', 'card');
+            this.onInputChange('payment', 'card'); // уведомили презентер
         });
 
         this.buttonCash.addEventListener('click', () => {
-            this.payment = 'cash';
-            this.onInputChange('payment', 'cash');
+            this.onInputChange('payment', 'cash'); // уведомили презентер
         });
     }
 
